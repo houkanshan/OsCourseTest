@@ -99,7 +99,7 @@ function ProductRepository() {
 
     this.getProducts = function () {
         return products;
-    }
+    };
 }
 
 function ProductController(eventAggregator, productRepository) {
@@ -127,7 +127,7 @@ function ProductController(eventAggregator, productRepository) {
 
 (function () {
     var eventAggregator = new EventAggregator(),
-    cart = new Cart(eventAggregator), 
+    cart = new Cart(eventAggregator),
     //提供一个参数实际上是将事件注册进去了.
     cartController = new CartController(cart, eventAggregator),
     //
