@@ -1,11 +1,11 @@
 require(["./lib/kinetic", "config"], function() {
-  var exports = this;
+  var exports = window;
 
   function ProcessLineStage(canvas) {
     var stage = new Kinetic.Stage({
       container: canvas,
       height: 400,
-      width: 900 
+      width: 1000 
     });
     var layer = new Kinetic.Layer();
     stage.add(layer);

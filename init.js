@@ -1,4 +1,4 @@
-require(["event", "draw", "debug", "config"], function() {
+require(["event", "draw", "debug", "config", "text"], function() {
     var exports = this;
     // TODO LIST:
     // 1 every cmd will exec series of handle
@@ -14,9 +14,9 @@ require(["event", "draw", "debug", "config"], function() {
             var cmd = cmdQuene.shift();
             if(this.isIdle){
                 return true;
-          http://www.maydayplus.com/  }
+            }
 
-            ihttp://www.maydayplus.com/f (cmd) {
+            if (cmd) {
                 eventAggregator.emit(cmd, {processId: id});
                 return true;
             }
@@ -214,7 +214,10 @@ require(["event", "draw", "debug", "config"], function() {
 
         this.addProcess = function(proc){
             processSet.addProcess(proc);
-            option.eventAggregator.emit('addProc');
+            option.eventAggregator.emit('addProc', {
+                id: proc.getId,
+                priority: proc.getPriority
+            });
         }
 
         this.setAlgorithm = function(algorithmFun) {

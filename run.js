@@ -1,12 +1,17 @@
 //run.js
 //draw init
-require("./init", function() {
-    window.onload = function() {
+require(["./init"], function() {
+    window.onload = function(){
+        setTimeout(a, 10000);
+    }
+    
+    function a() {
         //创建时间线画布
         processLineStage = new ProcessLineStage("container");
         //创建时间线控制器
         processLineController = new ProcessLineController(processLineStage, 
             {step: 2});
+        text = new DrawDom();
 
         (function(exports) {
             var runStyle = {
@@ -31,8 +36,9 @@ require("./init", function() {
                 }
             }
 
-            eventAggregator.on('addProc', function(){
+            eventAggregator.on('addProc', function(args){
                 processLineController.addProcessLine();
+                text.addProcess(args.id, args.priority);
             });
         }(window));
 
@@ -40,7 +46,7 @@ require("./init", function() {
             //process init
             //创建进程管理
             processController = new ProcessController({
-                intervalTime: 500,
+                intervalTime: 50,
                 eventAggregator: eventAggregator
             });
             //创建时间片算法
@@ -61,7 +67,7 @@ require("./init", function() {
         (function(exports){
             for(var i = 0; i < 10; ++i){
                 var process = new Process(i, i%config.MAX_PRIORITY);
-                for(var j = 0; j < 30; ++j){
+                for(var j = 0; j < 40; ++j){
                     process.addCmd('execRun', 1);
                 }
                 processController.addProcess(process);
