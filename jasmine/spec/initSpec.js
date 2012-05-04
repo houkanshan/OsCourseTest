@@ -22,7 +22,7 @@ describe("ProcessSet", function(){
             processSet.execChangeTo('comp', new Process());
         }
         //expect(processSet.getList('comp').length).toEqual(10);
-        expect(processSet.getList('comp').length).toEqual(0);
+        expect(processSet.getList('comp').length).toEqual(10);
     });
 
     it("should "+'stop'+" precesses", function(){
@@ -138,7 +138,7 @@ describe("ProcesController", function(){
                 processSet.execChangeTo('ready', readyList.shift());
             }
 
-            expect(processSet.getList('comp').length).toEqual(0);
+            expect(processSet.getList('comp').length).toEqual(10);
             processSet.clearProcess();
             expect(processSet.getList('comp').length).toEqual(0);
         });

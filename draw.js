@@ -97,8 +97,8 @@ require(["./lib/kinetic", "config"], function() {
     }
 
     //时间线推进一帧
-    this.timeRun = function(processNum, style) {
-      var processLine = processLines[processNum];
+    this.timeRun = function(processIndex, style) {
+      var processLine = processLines[processIndex];
       if (!processLine) {
         console.log('[info]timeRun: ', arguments);
         return;

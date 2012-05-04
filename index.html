@@ -14,11 +14,20 @@
             margin: 0;
             padding: 0;
         }
+        .clearfix{
+            clear: both;
+        }
         #container{
             width: 1000px;
             height: 400px;
         }
-        #label{
+        #time{
+            text-align: center;
+        }
+        #time dl{
+            margin: 0 3px;
+        }
+        .label{
             list-style: none;
             font-size: 12px;
             float: left;
@@ -34,9 +43,20 @@
         <h1>Houkanshan's Operting System course experiment</h1>
         <a href="./jasmine/SpecRunner.html" target="_blank">run TDD</a>
     </header>
-    <ul id="label">
+    <ul id="processlist" class="label">
     </ul>
     <div id="container">
     </div>
+    <div id="time" class="clearfix">
+        <dl class="t">
+        	<dt>Average turnaround time:</dt>
+        	<dd></dd>
+        </dl>
+        <dl class="dt">
+        	<dt>Average weighted turnaround time:</dt>
+        	<dd></dd>
+        </dl>
+    </div>
+
 </body>
 </html>

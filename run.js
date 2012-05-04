@@ -2,10 +2,6 @@
 //draw init
 require(["./init"], function() {
     window.onload = function(){
-        setTimeout(a, 10000);
-    }
-    
-    function a() {
         //创建时间线画布
         processLineStage = new ProcessLineStage("container");
         //创建时间线控制器
@@ -38,7 +34,11 @@ require(["./init"], function() {
 
             eventAggregator.on('addProc', function(args){
                 processLineController.addProcessLine();
-                text.addProcess(args.id, args.priority);
+                text.addProcess(args.id(), args.priority());
+            });
+
+            eventAggregator.on('updateTime', function(args){
+                text.updateTime(args.t, args.dt);
             });
         }(window));
 
@@ -46,13 +46,13 @@ require(["./init"], function() {
             //process init
             //创建进程管理
             processController = new ProcessController({
-                intervalTime: 50,
+                intervalTime: 5,
                 eventAggregator: eventAggregator
             });
             //创建时间片算法
             var timeFrame = new TimeFrame({
                 //每次执行的时间片长度
-                processTime: 1
+                processTime: 5
             });
 
             var priority = new Priority({
@@ -65,9 +65,9 @@ require(["./init"], function() {
 
         //TODO: 创建进程及进程指令序列
         (function(exports){
-            for(var i = 0; i < 10; ++i){
+            for(var i = 0; i < 15; ++i){
                 var process = new Process(i, i%config.MAX_PRIORITY);
-                for(var j = 0; j < 40; ++j){
+                for(var j = 0; j < 25; ++j){
                     process.addCmd('execRun', 1);
                 }
                 processController.addProcess(process);

@@ -6,7 +6,11 @@ require(["event", "draw", "debug", "config", "text"], function() {
     // 3 重构的时候改写所有的类
     function Process(id, priority) {
         var cmdQuene = []; //exec cmd in turn
+        var runTime = 0;
+        
 
+        this.startTime = 0;
+        this.endTime = 0;
         this.isIdle = false;
 
 
@@ -18,6 +22,7 @@ require(["event", "draw", "debug", "config", "text"], function() {
 
             if (cmd) {
                 eventAggregator.emit(cmd, {processId: id});
+                runTime ++;
                 return true;
             }
             return false;
@@ -49,6 +54,10 @@ require(["event", "draw", "debug", "config", "text"], function() {
                 return priority;
             }
             return config.MAX_PRIORITY;
+        }
+
+        this.getRunTime = function(){
+            return runTime;
         }
     }
 
@@ -89,15 +98,16 @@ require(["event", "draw", "debug", "config", "text"], function() {
             } else {
                 //ignore List, move to completed
                 set.comp.push(set.exec);
-                this.clearProcess();
+                //this.clearProcess();
                 debug('execChangeTo', 'push exec to complete');
             }
 
-            if (!(newExec instanceof Process)) {
-                //if no new nexec, push a idle process 
-                newExec = new Process();
-                newExec.isIdle = true;
-            }
+            //没有可执行进程必须让外部知道
+            //if (!(newExec instanceof Process)) {
+                ////if no new nexec, push a idle process 
+                //newExec = new Process();
+                //newExec.isIdle = true;
+            //}
             set.exec = newExec;
             return true;
         };
@@ -148,6 +158,8 @@ require(["event", "draw", "debug", "config", "text"], function() {
 
         return function(processSet){
             var ready = processSet.getList('ready');
+
+            //初始化优先队列
             if(!priorityList){
                 priorityList = [];
                 //将ready放入优先级队列
@@ -159,6 +171,8 @@ require(["event", "draw", "debug", "config", "text"], function() {
                 }
                 //将ready的进程清空
                 ready.splice(0, ready.length);
+                //放入第一个进程
+                processSet.execChangeTo('comp', priorityList[curPriority].shift());
             }
 
             //检查程序是否执行完成
@@ -169,8 +183,8 @@ require(["event", "draw", "debug", "config", "text"], function() {
                      curPriority*curPriority + 1) * option.processTime;
                 //时间片增加，继续执行此进程
                 if(++count < runningTime){
-                    debug('priority', '执行优先级为', curPriority - 1, '的进程');
-                    debug('priority', priorityList[curPriority - 1]);
+                    debug('priority', '执行优先级为', curPriority, '的进程');
+                    debug('priority', priorityList[curPriority]);
                     return;
                 }
             }
@@ -178,27 +192,32 @@ require(["event", "draw", "debug", "config", "text"], function() {
                 target = 'comp';
             }
 
+            //到下一个优先级
+            nextPriority();
+
             //时间片归零，切换进程
             count = 0;
             //找到下一个非undefine的优先级的队列
-            while(!(curPriority in priorityList)/* ||*/
-                    /*priorityList[curPriority].length == 0*/){
+            var i = 0;
+            while(!(curPriority in priorityList)||
+                    priorityList[curPriority].length == 0){
                 //如果是undefine，跳过，如果是[]，也跳过
-                //delete priorityList[curPriority];
+                delete priorityList[curPriority];
+                if(++i > config.MAX_PRIORITY){
+                    return;
+                }
                 nextPriority();
             }
 
             //curPriority = (curPriority) % config.MAX_PRIORITY;
             debug('priority', '切换到优先级为', curPriority, '的进程');
-            debug('priority', priorityList);
+            debug('priority', priorityList[curPriority]);
             //切换
             processSet.execChangeTo(target, priorityList[curPriority].shift());
             while(ready.length){
                 var p = ready.shift();
                 priorityList[p.getPriority()].push(p);
             }
-            //到下一个优先级
-            nextPriority();
         };
     }
 
@@ -209,16 +228,41 @@ require(["event", "draw", "debug", "config", "text"], function() {
      *  **/
     function ProcessController(option) {
         var processSet = new ProcessSet();
+        var totalProcessCnt = 0;  //所有进程数
+        var finishedCnt = 0;  //结束的进程数
+        var processTime = 0; //cpu执行时间
+        var t = 0;              //平均周转时间
+        var dt = 0;             //带权周转时间
         var algorithm;
         var timer;
 
+        function countTime(proc){
+            var runTime = proc.getRunTime();
+            var liveTime = proc.endTime - proc.startTime;
+            if(!liveTime){
+                return;
+            }
+
+            finishedCnt ++;
+            //t = processTime / finishedCnt;
+            t = t * (finishedCnt - 1) + runTime;
+            t = t / finishedCnt;
+
+            dt = dt * (finishedCnt - 1) + runTime / liveTime;
+            dt = dt / finishedCnt;
+
+            option.eventAggregator.emit('updateTime', {t: t, dt: dt});
+        }
+
         this.addProcess = function(proc){
+            totalProcessCnt ++;
             processSet.addProcess(proc);
+            proc.startTime = processTime;
             option.eventAggregator.emit('addProc', {
                 id: proc.getId,
                 priority: proc.getPriority
             });
-        }
+        };
 
         this.setAlgorithm = function(algorithmFun) {
             if (typeof algorithmFun !== 'function') {
@@ -234,12 +278,30 @@ require(["event", "draw", "debug", "config", "text"], function() {
                 return;
             }
             timer = setInterval(function() {
+                //run algorithm
                 algorithm(processSet);
+
+                //update running time
+                var compProc = processSet.getList('comp');
+                if(compProc){
+                    for(var i = 0; i < compProc.length; ++i){
+                        if(!compProc[i]){
+                            compProc.splice(i, 1);
+                            continue;
+                        }
+                        compProc[i].endTime = processTime;
+                        countTime(compProc[i]);
+                    }
+                    processSet.clearProcess();
+                }
+                
+                //run exec
                 var exec = processSet.getList('exec');
+                processTime ++;
                 if (typeof exec != 'undefined') {
                     exec.runCmd(option.eventAggregator);
                 } else {
-                    console.log('[err]stateChange: no exec');
+                    console.log('[info]stateChange: no exec');
                 }
             }, option.intervalTime);
         };
