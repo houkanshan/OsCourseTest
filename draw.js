@@ -39,7 +39,8 @@ require(["./lib/kinetic", "config"], function() {
   function ProcessLine(option) {
     var curXPos = 0;
     var curStyle = {
-      fill: "#00D2FF"
+      fill: "#00D2FF",
+      height: option.height
     };
     var curRect;
     var step = option.step || 5;
@@ -49,21 +50,27 @@ require(["./lib/kinetic", "config"], function() {
     this.drawTimeline = function(xPoint, style) {
       var targetXPos = xPoint * step;
       var styleChanged = false;
+
       if (style) {
         curStyle.fill = style.fill || curStyle.fill;
+
+        style.heightRate && (style.height = style.heightRate*curStyle.height);
+        curStyle.height = style.height || curStyle.height;
+
         styleChanged = true;
       }
 
       if (targetXPos == curXPos + step && curRect && !styleChanged) {
-        //continually & rect exist & style exist & style same
+        // continually & rect exist & style exist & style same
+        // only set width
         curRect.setWidth(curRect.getWidth() + step);
         stage.draw();
       } else {
         curRect = new Kinetic.Rect({
           x: targetXPos,
-          y: option.row * option.height,
+          y: option.row * curStyle.height,
           width: option.step,
-          height: option.height,
+          height: curStyle.height,
           fill: curStyle.fill
         });
         try {

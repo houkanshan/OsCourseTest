@@ -7,24 +7,33 @@ require(["event", "draw", "debug", "config", "text"], function() {
     function Process(id, priority) {
         var cmdQuene = []; //exec cmd in turn
         var runTime = 0;
-        
+        var cmdLib;
+        //TODO 不确定是否public
+        this.holdCmd = [];
 
         this.startTime = 0;
         this.endTime = 0;
         this.isIdle = false;
 
+        this.setLib = function(lib){
+            cmdLib = lib;
+        };
 
-        this.runCmd = function(eventAggregator) {
+        this.runCmd = function(uiEvent) {
             var cmd = cmdQuene.shift();
             if(this.isIdle){
                 return true;
             }
 
             if (cmd) {
-                eventAggregator.emit(cmd, {processId: id});
+                if(cmdLib){
+                    cmdLib.emit(cmd, {processId: id, holdCmd: this.holdCmd});
+                }
+                uiEvent.emit(cmd, {processId: id});
                 runTime ++;
                 return true;
             }
+
             return false;
         };
 
@@ -60,6 +69,7 @@ require(["event", "draw", "debug", "config", "text"], function() {
             return runTime;
         }
     }
+
 
     /* ProcessSet for processes storage and clear
      * creator: houkanshan */
@@ -221,6 +231,59 @@ require(["event", "draw", "debug", "config", "text"], function() {
         };
     }
 
+    function CmdLib(processSet, signal){
+        EventAggregator.call(this);
+        this.on('test', function(){
+            alert('test ok');
+        });
+
+        //signal cmd
+        this.on('signal', function(args){
+            var signalId = args.signalId;
+            var processId = args.processId;
+            
+            if(typeof signal[signalId] != "object"){
+                debug('signal', 'signal for none', signalId, processId);
+                return;
+            }
+
+            if(signal[signalId].length != 0){
+                //只要还有信号wait, from block to ready[head]
+                var block = processSet.getList('block');
+                var ready = processSet.getList('ready');
+                var wakeup;
+                for(var i = 0; i < block.length; ++i){
+                    if(block[i].getId() == processId){
+                        //找到, 删掉
+                        wakeup = block.splice(i, 1);
+                        break;
+                    }
+                }
+                if(typeof wakeup != 'object'){
+                    return;
+                }
+                //TODO 到底是放前还是放后
+                ready.unshift(wakeup);
+            }
+        });
+
+        //wait cmd
+        this.emit('wait', function(args){
+            var signalId = args.signalId;
+            var processId = args.processId;
+
+            if(typeof signal[signalId] != "object"){
+                signal[signalId] = [];
+            }
+            if(signal[signalId].length > 0){
+                //信号被占用, block
+                var newExec = processSet.getList('ready').shift();
+                processSet.execChangeTo('block', newExec);
+            }
+
+            signal[signalId].push(processId);
+        });
+    }
 
     /**
      *  @option.intervalTime: 500 // for setInterval
@@ -228,13 +291,21 @@ require(["event", "draw", "debug", "config", "text"], function() {
      *  **/
     function ProcessController(option) {
         var processSet = new ProcessSet();
+        var signal = [];
         var totalProcessCnt = 0;  //所有进程数
         var finishedCnt = 0;  //结束的进程数
         var processTime = 0; //cpu执行时间
         var t = 0;              //平均周转时间
         var dt = 0;             //带权周转时间
+        var signal = [];
         var algorithm;
         var timer;
+
+        var cmdLib = new CmdLib(processSet, signal);
+        //var cmdLib = new EventAggregator();
+        //cmdLib.on('test', function(){
+            //alert('test ok');
+        //});
 
         function countTime(proc){
             var runTime = proc.getRunTime();
@@ -256,6 +327,7 @@ require(["event", "draw", "debug", "config", "text"], function() {
 
         this.addProcess = function(proc){
             totalProcessCnt ++;
+            proc.setLib(cmdLib);
             processSet.addProcess(proc);
             proc.startTime = processTime;
             option.eventAggregator.emit('addProc', {
@@ -315,6 +387,7 @@ require(["event", "draw", "debug", "config", "text"], function() {
             timer = null;
         };
     }
+
 
     (function(){
         exports.Process = Process;

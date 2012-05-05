@@ -17,21 +17,50 @@ require(["./init"], function() {
                 },
                 execRun: {
                     fill: "#4286F4"
-                }
+                },
+                signal: [
+                    {fill: "#800000"},
+                    {fill: "#863C83"},
+                    {fill: "#4BB449"},
+                    {fill: "#024D92"},
+                    {fill: "#800000"},
+                    {fill: "#863C83"},
+                    {fill: "#4BB449"},
+                    {fill: "#024D92"},
+                    {fill: "#800000"},
+                    {fill: "#863C83"},
+                    {fill: "#4BB449"},
+                    {fill: "#024D92"},
+                    {fill: "#800000"},
+                    {fill: "#863C83"},
+                    {fill: "#4BB449"},
+                    {fill: "#024D92"}
+                ]
             };
 
             //event init
             eventAggregator = new EventAggregator();
-            //注册事件
+            //注册命令事件
             for(var i in runStyle){
                 if(runStyle.hasOwnProperty(i)){
                     eventAggregator.on(i, function(args) {
                         processLineController.timeRun(args.processId,
                             runStyle[i]);
+                        if(typeof args.holdCmd == "object"){
+                            for(var i = 0; i < args.holdCmd; ++i){
+                                var cmdStyle = {
+                                    fill: signal[i].fill,
+                                    heightRate: 1 - (i / args.holdCmd.height)
+                                };
+                                processLineController.timeRun(args.processId, 
+                                    cmdStyle);
+                            }
+                        }
                     });
                 }
             }
 
+            //注册进程管理事件
             eventAggregator.on('addProc', function(args){
                 processLineController.addProcessLine();
                 text.addProcess(args.id(), args.priority());
