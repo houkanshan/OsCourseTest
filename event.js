@@ -48,8 +48,9 @@ function EventAggregator(){
 
         if(!event){
             console.info('[err]event fired before subscribe');
-            event = new Event(eventName);
-            events.push(event);
+            return;
+            //event = new Event(eventName);
+            //events.push(event);
         }
 
         event.fire(eventArgs);

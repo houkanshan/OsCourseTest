@@ -9,7 +9,7 @@ require(["event", "draw", "debug", "config", "text"], function() {
         var runTime = 0;
         var cmdLib;
         //TODO 不确定是否public
-        this.holdCmd = [];
+        var holdCmd = [];
 
         this.startTime = 0;
         this.endTime = 0;
@@ -19,18 +19,46 @@ require(["event", "draw", "debug", "config", "text"], function() {
             cmdLib = lib;
         };
 
+        this.getCmd = function(){
+            return cmdQuene;
+        }
+
         this.runCmd = function(uiEvent) {
             var cmd = cmdQuene.shift();
+            var res = true;
             if(this.isIdle){
                 return true;
             }
 
             if (cmd) {
                 if(cmdLib){
-                    cmdLib.emit(cmd, {processId: id, holdCmd: this.holdCmd});
+                    cmdLib.emit(cmd.name, {
+                        cmd: cmd, 
+                        processId: id, 
+                        holdCmd: holdCmd
+                    });
                 }
-                uiEvent.emit(cmd, {processId: id});
-                runTime ++;
+                uiEvent.emit(cmd.name, {
+                    cmd: cmd,
+                    holdCmd: holdCmd,
+                    processId: id
+                });
+                if(cmd.value != -1){
+                    runTime ++;
+                }
+
+                //for holdCmd
+                switch(cmd.name){
+                    case 'signal':
+                        holdCmd.splice(del, 1);
+                        break;
+                    case 'wait':
+                        var del = holdCmd.indexOf(cmd.value);
+                        holdCmd.push(cmd.value);
+                        break;
+                    default:break;
+                }
+
                 return true;
             }
 
@@ -41,12 +69,18 @@ require(["event", "draw", "debug", "config", "text"], function() {
             return !!cmdQuene[0];
         };
 
-        this.addCmd = function(cmdName, repeatTime) {
-            if (repeatTime === undefined) {
-                repeatTime = 1;
+        this.addCmd = function(cmdName, cmdValue) {
+            if (cmdValue === undefined) {
+                cmdValue = 1;
             }
-            for (var i = 0; i < repeatTime; i++) {
-                cmdQuene.push(cmdName);
+            var cmd = {name: cmdName, value: cmdValue};
+            if(cmd.name == 'execRun'){
+                for (var i = 0; i < cmd.value; i++) {
+                    cmdQuene.push(cmd);
+                }
+            }
+            else{
+                cmdQuene.push(cmd);
             }
         };
 
@@ -145,7 +179,18 @@ require(["event", "draw", "debug", "config", "text"], function() {
 
     function TimeFrame(option) {
         var count = 0; // count for processTime;
+        var prevPriocessId;
         return function(processSet) {
+            var curProcessId = -1;
+            var exec = processSet.getList('exec');
+            if(typeof exec == 'object' &&
+                    exec instanceof Process){
+                curProcessId = processSet.getList('exec').getId();
+            }
+            if(prevPriocessId != curProcessId){
+                count = 0;
+                prevPriocessId = curProcessId;
+            }
             if (++count < option.processTime) {
                 return;
             }
@@ -232,6 +277,7 @@ require(["event", "draw", "debug", "config", "text"], function() {
     }
 
     function CmdLib(processSet, signal){
+        var reader = [];
         EventAggregator.call(this);
         this.on('test', function(){
             alert('test ok');
@@ -239,37 +285,52 @@ require(["event", "draw", "debug", "config", "text"], function() {
 
         //signal cmd
         this.on('signal', function(args){
-            var signalId = args.signalId;
+            var signalId = args.cmd.value;
             var processId = args.processId;
-            
+            var block = processSet.getList('block');
+            var ready = processSet.getList('ready');
+
             if(typeof signal[signalId] != "object"){
                 debug('signal', 'signal for none', signalId, processId);
-                return;
+                return false;
             }
 
             if(signal[signalId].length != 0){
                 //只要还有信号wait, from block to ready[head]
-                var block = processSet.getList('block');
-                var ready = processSet.getList('ready');
                 var wakeup;
+                //删掉signal里的第一项，并将signal的第二项从block中弄出来
+                signal[signalId].shift();
                 for(var i = 0; i < block.length; ++i){
-                    if(block[i].getId() == processId){
-                        //找到, 删掉
-                        wakeup = block.splice(i, 1);
+                    if(block[i].getId() == signal[signalId][0]){
+                        //找到第一个被block进程, 删掉
+                        wakeup = block.splice(i, 1)[0];
                         break;
                     }
                 }
-                if(typeof wakeup != 'object'){
-                    return;
+                if(typeof wakeup == 'object'){
+                    //TODO 到底是放前还是放后, 目前放到最前
+                    ready.unshift(wakeup);
                 }
-                //TODO 到底是放前还是放后
-                ready.unshift(wakeup);
+            }
+            if(signal[signalId].length == 0){
+                debugger;
+                if(typeof reader[signalId] == 'object'){
+                    //没有wait信号时,释放reader
+                    for(var j = 0; j < block.length; ++j){
+                        for(var i = 0; i < reader[signalId].length; ++i){
+                            if(block[j].getId() == reader[signalId][i]){
+                                ready.push(block.splice(j, 1)[0]);
+                            }
+                        }
+                    }
+                    reader[signalId] = [];
+                }
             }
         });
 
         //wait cmd
-        this.emit('wait', function(args){
-            var signalId = args.signalId;
+        this.on('wait', function(args){
+            var signalId = args.cmd.value;
             var processId = args.processId;
 
             if(typeof signal[signalId] != "object"){
@@ -280,8 +341,28 @@ require(["event", "draw", "debug", "config", "text"], function() {
                 var newExec = processSet.getList('ready').shift();
                 processSet.execChangeTo('block', newExec);
             }
-
             signal[signalId].push(processId);
+        });
+
+        this.on('read', function(args){
+            var readId = args.cmd.value;
+            var processId = args.processId;
+
+            if(typeof signal[readId] == "object" &&
+                signal[readId].length > 0){
+                //信号被占用, block
+                var newExec = processSet.getList('ready').shift();
+                processSet.execChangeTo('block', newExec);
+                //修改value改变uiEvent行为
+                args.cmd.value = -1;
+                return false;
+            }
+            //push到reader里，因为它不排他，但恤啊哟被唤醒
+            if(typeof reader[readId] != "object"){
+                reader[readId] = [];
+            }
+            reader[readId].push(processId);
+            return true;
         });
     }
 

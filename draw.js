@@ -38,7 +38,7 @@ require(["./lib/kinetic", "config"], function() {
 
   function ProcessLine(option) {
     var curXPos = 0;
-    var curStyle = {
+    var baseStyle = {
       fill: "#00D2FF",
       height: option.height
     };
@@ -52,10 +52,16 @@ require(["./lib/kinetic", "config"], function() {
       var styleChanged = false;
 
       if (style) {
-        curStyle.fill = style.fill || curStyle.fill;
+        //baseStyle.fill = style.fill || baseStyle.fill;
+        style.fill = (style.fill || baseStyle.fill);
+        style.fill || (style.fill = baseStyle.fill); //same
 
-        style.heightRate && (style.height = style.heightRate*curStyle.height);
-        curStyle.height = style.height || curStyle.height;
+        style.alpha && (style.alpha = 1);
+        style.heightRate && (style.height = style.heightRate*baseStyle.height);
+
+        //curStyle.height = style.height || curStyle.height;
+        //如果没有height, (包含heightRate), 则用baseheight
+        style.height || (style.height = baseStyle.height);
 
         styleChanged = true;
       }
@@ -67,11 +73,12 @@ require(["./lib/kinetic", "config"], function() {
         stage.draw();
       } else {
         curRect = new Kinetic.Rect({
-          x: targetXPos,
-          y: option.row * curStyle.height,
-          width: option.step,
-          height: curStyle.height,
-          fill: curStyle.fill
+            x: targetXPos,
+            y: option.row * baseStyle.height, // align to the process
+            width: option.step,
+            height: style.height,
+            alpha: style.alpha,
+            fill: style.fill
         });
         try {
           stage.addObj(curRect);
@@ -79,6 +86,10 @@ require(["./lib/kinetic", "config"], function() {
           concole.log('[err]drawTimeline:', e);
         }
       }
+      //if(style.top){
+          //curRect.moveToTop();
+          //stage.draw();
+      //}
       curXPos = targetXPos;
     };
 
@@ -111,6 +122,17 @@ require(["./lib/kinetic", "config"], function() {
         return;
       }
       processLine.drawTimeline(timePoint++, style);
+    };
+
+    this.timeOver = function(processIndex, style) {
+      var processLine = processLines[processIndex];
+      if (!processLine) {
+        console.log('[info]timeRun: ', arguments);
+        return;
+      }
+      style.alpha = 0.8;
+      style.top = true;
+      processLine.drawTimeline((timePoint-1), style);
     }
   }
 

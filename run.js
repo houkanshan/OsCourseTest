@@ -11,52 +11,65 @@ require(["./init"], function() {
 
         (function(exports) {
             var runStyle = {
-                normal: {},
-                waiting: {
-                    fill: "#222222"
-                },
                 execRun: {
                     fill: "#4286F4"
                 },
-                signal: [
-                    {fill: "#800000"},
-                    {fill: "#863C83"},
-                    {fill: "#4BB449"},
-                    {fill: "#024D92"},
-                    {fill: "#800000"},
-                    {fill: "#863C83"},
-                    {fill: "#4BB449"},
-                    {fill: "#024D92"},
-                    {fill: "#800000"},
-                    {fill: "#863C83"},
-                    {fill: "#4BB449"},
-                    {fill: "#024D92"},
-                    {fill: "#800000"},
-                    {fill: "#863C83"},
-                    {fill: "#4BB449"},
-                    {fill: "#024D92"}
-                ]
+                signal: {
+                    fill: "#111111"
+                },
+                wait: {
+                    fill: "#333333"
+                },
+                read: {
+                    fill: "#aeaeae"
+                }
+
             };
+
+            var signalStyle = [
+                {fill: "#E24B39"},
+                {fill: "#863C83"},
+                {fill: "#4BB449"},
+                {fill: "#024D92"},
+                {fill: "#800000"},
+                {fill: "#863C83"},
+                {fill: "#4BB449"},
+                {fill: "#024D92"},
+                {fill: "#800000"},
+                {fill: "#863C83"},
+                {fill: "#4BB449"},
+                {fill: "#024D92"},
+                {fill: "#800000"},
+                {fill: "#863C83"},
+                {fill: "#4BB449"},
+                {fill: "#024D92"}
+            ];
 
             //event init
             eventAggregator = new EventAggregator();
             //注册命令事件
             for(var i in runStyle){
                 if(runStyle.hasOwnProperty(i)){
-                    eventAggregator.on(i, function(args) {
-                        processLineController.timeRun(args.processId,
-                            runStyle[i]);
-                        if(typeof args.holdCmd == "object"){
-                            for(var i = 0; i < args.holdCmd; ++i){
-                                var cmdStyle = {
-                                    fill: signal[i].fill,
-                                    heightRate: 1 - (i / args.holdCmd.height)
-                                };
-                                processLineController.timeRun(args.processId, 
-                                    cmdStyle);
+                    eventAggregator.on(i, (function(i){
+                        return function(args) {
+                            if(args.cmd.value == -1){
+                                return;
                             }
-                        }
-                    });
+                            processLineController.timeRun(args.processId,
+                                runStyle[i]);
+                            if(typeof args.holdCmd == "object" && 
+                                args.holdCmd.length !== 0){
+                                for(var j = 0; j < args.holdCmd.length; ++j){
+                                    var cmdStyle = {
+                                        fill: signalStyle[args.holdCmd[j]].fill,
+                        heightRate: 1-((j+1)/(args.holdCmd.length+1))
+                                    };
+                                    processLineController.timeOver(args.processId, 
+                                        cmdStyle);
+                                }
+                            }
+                        };
+                    }(i)));
                 }
             }
 
@@ -88,23 +101,113 @@ require(["./init"], function() {
                 processTime: 1
             });
             //进程管理加载算法
-            processController.setAlgorithm(priority);
+            //processController.setAlgorithm(priority);
+            processController.setAlgorithm(timeFrame);
 
         }(window));
 
+        (function(exports){
+            //base signal
+            //for(var i = 0; i < 5; ++i){
+            //var process = new Process(i, i%config.MAX_PRIORITY);
+            //for(var j = 0; j < 5; ++j){
+            //process.addCmd('execRun', 1);
+            //}
+            //process.addCmd('wait', 1);
+            //for(var j = 0; j < 15; ++j){
+            //process.addCmd('execRun', 1);
+            //}
+            //process.addCmd('wait', 2);
+            //for(var j = 0; j < 15; ++j){
+            //process.addCmd('execRun', 1);
+            //}
+            //process.addCmd('signal', 2);
+            //for(var j = 0; j < 5; ++j){
+            //process.addCmd('execRun', 1);
+            //}
+            //process.addCmd('signal', 1);
+            //for(var j = 0; j < 15; ++j){
+            //process.addCmd('execRun', 1);
+            //}
+            //processController.addProcess(process);
+            //}
+        }(window));
+        (function(exports){
+            ////test signal conflic
+            //for(var i = 0; i < 10; ++i){
+            //var CMD_LENGTH = 40;
+            //var MAX_WIRTE_LENGTH = 30;
+            //var process = new Process(i, i%config.MAX_PRIORITY);
+            //var isWriter = !!Math.round(Math.random());
+            //var writeSignal;
+            //var writeIn = 0;
+            //var writeLength = 0;
+            //if(isWriter){
+            ////随机设置写入位置，写完位置
+            //writeIn = Math.round(CMD_LENGTH * Math.random());
+            //writeLength = Math.round(MAX_WIRTE_LENGTH * Math.random());
+            //writeSignal = Math.round(3 * Math.random());
+            //////debug
+            //writeSignal = 2;
+            ////writeLength = 0;
+
+
+            ////加信号cmd
+            //for(var j = 0; j < writeIn; ++j){
+            //process.addCmd('execRun', 1);
+            //}
+            //process.addCmd('wait', writeSignal);
+            //for(j = 0; j < writeLength; ++j){
+            //process.addCmd('execRun', 1);
+            //}
+            //process.addCmd('signal', writeSignal);
+            //}
+            //for(var j = 0; j < (CMD_LENGTH - writeLength - writeIn); ++j){
+            //process.addCmd('execRun', 1);
+            //}
+            //processController.addProcess(process);
+            //}
+        }(window));
         //TODO: 创建进程及进程指令序列
         (function(exports){
-            for(var i = 0; i < 15; ++i){
+            //reader and writer
+            for(var i = 0; i < 10; ++i){
+                var CMD_LENGTH = 40;
+                var MAX_WIRTE_LENGTH = 30;
                 var process = new Process(i, i%config.MAX_PRIORITY);
-                for(var j = 0; j < 25; ++j){
-                    process.addCmd('execRun', 1);
+                var isWriter = !!Math.round(Math.random());
+                var writeSignal = 0;
+                var writeIn = 0;
+                var writeLength = 0;
+                if(isWriter){
+                    //随机设置写入位置，写完位置
+                    writeIn = Math.round(CMD_LENGTH * Math.random());
+                    writeLength = Math.round(MAX_WIRTE_LENGTH * Math.random());
+                    writeSignal = Math.round(3 * Math.random());
+                    ////debug
+                    writeSignal = 0;
+
+                    //加信号cmd
+                    for(var j = 0; j < writeIn; ++j){
+                        process.addCmd('execRun', 1);
+                    }
+                    process.addCmd('wait', writeSignal);
+                    for(j = 0; j < writeLength; ++j){
+                        process.addCmd('execRun', 1);
+                    }
+                    process.addCmd('signal', writeSignal);
+
+                    for(var j = 0; j < (CMD_LENGTH - writeLength - writeIn); ++j){
+                        process.addCmd('execRun', 1);
+                    }
+                }
+                else{
+                    for(var j = 0; j < CMD_LENGTH; ++j){
+                        process.addCmd('read', writeSignal);
+                    }
                 }
                 processController.addProcess(process);
             }
-        }(window));
-
-        (function(exports){
-            
         }(window));
 
         (function(exports) {
