@@ -91,17 +91,16 @@ require(["event", "draw", "debug", "config", "text"], function() {
             return id;
         };
 
-
-        this.getPriority = function(){
-            if(typeof priority == "number" && priority <= config.MAX_PRIORITY){
+        this.getPriority = function() {
+            if(typeof priority == "number" && priority <= config.MAX_PRIORITY) {
                 return priority;
             }
             return config.MAX_PRIORITY;
-        }
+        };
 
-        this.getRunTime = function(){
+        this.getRunTime = function() {
             return runTime;
-        }
+        };
     }
 
 
