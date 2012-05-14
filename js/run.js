@@ -1,6 +1,6 @@
 //run.js
 //draw init
-require(["./init"], function() {
+require(["./js/init"], function() {
     window.onload = function(){
         //创建时间线画布
         processLineStage = new ProcessLineStage("container");

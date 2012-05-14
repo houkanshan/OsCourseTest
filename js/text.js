@@ -1,4 +1,4 @@
-require(["config", "debug"], function(){
+require(["./js/config", "./js/debug"], function(){
     $g = function(idName){
         return document.getElementById(idName);
     }

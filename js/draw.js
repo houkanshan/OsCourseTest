@@ -1,4 +1,4 @@
-require(["./lib/kinetic", "config"], function() {
+require(["./js/lib/kinetic", "config"], function() {
   var exports = window;
 
   function ProcessLineStage(canvas) {
