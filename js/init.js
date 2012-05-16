@@ -26,11 +26,33 @@ require(["./js/event", "./js/draw", "./js/debug", "./js/config", "./js/text"], f
         this.runCmd = function(uiEvent) {
             var cmd = cmdQuene.shift();
             var res = true;
+            var del = -1;
+
             if(this.isIdle){
                 return true;
             }
 
             if (cmd) {
+                //for holdCmd
+                switch(cmd.name){
+                    case 'signal':
+                        var delIndex = -1;
+                        var delInt = 0;
+                        for(var i = holdCmd.length; i--;){
+                            if(holdCmd[i].value == cmd.value){
+                                delIndex = i;
+                                delInt = 1;
+                                break;
+                            }
+                        }
+                        holdCmd.splice(delIndex, delInt);
+                        break;
+                    case 'wait':
+                        holdCmd.push(cmd);
+                        break;
+                    default:break;
+                }
+
                 if(cmdLib){
                     cmdLib.emit(cmd.name, {
                         cmd: cmd, 
@@ -47,17 +69,6 @@ require(["./js/event", "./js/draw", "./js/debug", "./js/config", "./js/text"], f
                     runTime ++;
                 }
 
-                //for holdCmd
-                switch(cmd.name){
-                    case 'signal':
-                        holdCmd.splice(del, 1);
-                        break;
-                    case 'wait':
-                        var del = holdCmd.indexOf(cmd.value);
-                        holdCmd.push(cmd.value);
-                        break;
-                    default:break;
-                }
 
                 return true;
             }
@@ -81,6 +92,13 @@ require(["./js/event", "./js/draw", "./js/debug", "./js/config", "./js/text"], f
             }
             else{
                 cmdQuene.push(cmd);
+            }
+        };
+        
+        this.fallbackCmd = function(){
+            //  block后将holdCmd的命令回滚到cmd中
+            while(holdCmd.length !== 0){
+                cmdQuene.unshift(holdCmd.pop());
             }
         };
 
@@ -184,7 +202,7 @@ require(["./js/event", "./js/draw", "./js/debug", "./js/config", "./js/text"], f
             var exec = processSet.getList('exec');
             if(typeof exec == 'object' &&
                     exec instanceof Process){
-                curProcessId = processSet.getList('exec').getId();
+                curProcessId = exec.getId();
             }
             if(prevPriocessId != curProcessId){
                 count = 0;
@@ -312,7 +330,6 @@ require(["./js/event", "./js/draw", "./js/debug", "./js/config", "./js/text"], f
                 }
             }
             if(signal[signalId].length == 0){
-                debugger;
                 if(typeof reader[signalId] == 'object'){
                     //没有wait信号时,释放reader
                     for(var j = 0; j < block.length; ++j){
@@ -331,16 +348,25 @@ require(["./js/event", "./js/draw", "./js/debug", "./js/config", "./js/text"], f
         this.on('wait', function(args){
             var signalId = args.cmd.value;
             var processId = args.processId;
+            var curExec = processSet.getList('exec');
 
             if(typeof signal[signalId] != "object"){
                 signal[signalId] = [];
             }
-            if(signal[signalId].length > 0){
-                //信号被占用, block
-                var newExec = processSet.getList('ready').shift();
-                processSet.execChangeTo('block', newExec);
+
+            //signal[0]的判断是因为wait在signal后会重新申请一次，需要检查
+            //这个进程是不是重新wait一次
+            debugger;
+            if(signal[signalId][0] !== processId){
+                if(signal[signalId].length > 0){
+                    //信号被占用, block
+                    //命令回退
+                    curExec.fallbackCmd();
+                    var newExec = processSet.getList('ready').shift();
+                    processSet.execChangeTo('block', newExec);
+                }
+                signal[signalId].push(processId);
             }
-            signal[signalId].push(processId);
         });
 
         this.on('read', function(args){

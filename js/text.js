@@ -43,5 +43,16 @@ require(["./js/config", "./js/debug"], function(){
         this.addLi(text, this.processUl).setAttribute('data-id', id);
     };
 
+    DrawDom.prototype.highLight = function(id){
+        var lis = this.processUl.getElementsByTagName('li');
+        for(var i = lis.length; i--;){
+            if(lis[i].getAttribute('data-id') == String(id)){
+                lis[i].className += ' run';
+            }else{
+                lis[i].className = '';
+            }
+        }
+    };
+
     exports.DrawDom = DrawDom;
 });

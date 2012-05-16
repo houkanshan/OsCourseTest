@@ -1,0 +1,113 @@
+#table{
+    position: absolute;
+    top: 400px;
+    left: 100px;
+    /*z-index: 100;*/
+
+    height: 160px;
+    width: 160px;
+
+    border: 80px solid white;
+    border-radius: 50%;
+
+}
+.fork, .phil{
+}
+
+.fork {
+    position: absolute;
+    top: 65px;
+    left: 60px;
+}
+
+.fork li{
+    position: absolute;
+
+    height: 30px;
+    width: 30px;
+    border-radius: 50%;
+    background: white;
+
+}
+
+.f0 {
+    -webkit-transform: rotate(72deg) translate(50px, 0);
+}
+
+
+.f1 {
+    -webkit-transform: rotate(144deg) translate(50px, 0);
+}
+
+.f2 {
+    -webkit-transform: rotate(216deg) translate(50px, 0);
+}
+
+.f3 {
+    -webkit-transform: rotate(288deg) translate(50px, 0);
+}
+
+.f4 {
+    -webkit-transform: rotate(360deg) translate(50px, 0);
+}
+.fork .eatting{
+    background: red;
+}
+
+.phil li {
+    position: absolute;
+    left: 40px;
+    top: 40px;
+    -webkit-transform: translate(50%, 50%);
+    z-index: -96;
+
+    height: 80px;
+    width: 80px;
+}
+
+.phil .top-phil{
+    top: 40px;
+    left: 20px;
+    z-index: -90;
+
+    -webkit-transform: rotate(130deg) translate(60px, -40px);
+
+    border-style: solid;
+    border-bottom: 80px solid #ff7070;
+    border-top: 0px solid transparent;
+    border-left: 60px solid transparent;
+    border-right: 60px solid transparent;
+
+    height: 0px;
+    width:0px;
+    
+}
+.phil li.l0 {
+    -webkit-transform: rotate(72deg) translate(50%, 50%);
+
+    background: #ff7070;
+}
+
+.phil li.l1 {
+    -webkit-transform: rotate(144deg) translate(50%, 50%);
+
+    background: #ffe270;
+}
+
+.phil li.l2 {
+    -webkit-transform: rotate(216deg) translate(50%, 50%);
+
+    background: #ffce75;
+}
+
+.phil li.l3 {
+    -webkit-transform: rotate(288deg) translate(50%, 50%);
+
+    background: #ffb275;
+}
+
+.phil li.l4 {
+    -webkit-transform: rotate(360deg) translate(50%, 50%);
+
+    background: #ff9375;
+}
