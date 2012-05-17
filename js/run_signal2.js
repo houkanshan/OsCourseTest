@@ -57,6 +57,7 @@ require(["./js/init"], function() {
                             }
                             processLineController.timeRun(args.processId,
                                 runStyle[i]);
+                            text.highLight(args.processId);
                             if(typeof args.holdCmd == "object" && 
                                 args.holdCmd.length !== 0){
                                 for(var j = 0; j < args.holdCmd.length; ++j){

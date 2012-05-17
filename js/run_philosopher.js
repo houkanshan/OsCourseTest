@@ -1,6 +1,6 @@
 //run.js
 //draw init
-require(["./js/init", "table"], function() {
+require(["./js/init", "./js/table"], function() {
     window.onload = function(){
         //创建时间线画布
         processLineStage = new ProcessLineStage("container");
@@ -52,6 +52,7 @@ require(["./js/init", "table"], function() {
             for(var i in runStyle){
                 if(runStyle.hasOwnProperty(i)){
                     eventAggregator.on(i, (function(i){
+                        //keep i
                         return function(args) {
                             if(args.cmd.value == -1){
                                 return;
@@ -75,6 +76,42 @@ require(["./js/init", "table"], function() {
                 }
             }
 
+            var tableHoldList = [];
+            //需要数组来存储座位信息
+            eventAggregator.on('wait', function(args){
+                var processId = args.processId;
+                var signalId = args.cmd.value;
+                //只要检查第二个信号即可
+                //processId 是 signalId
+                if(signalId !== (processId % 5)){
+                    return;
+                }
+                tableHoldList[processId] = true;
+            });
+            eventAggregator.on('signal', function(args){
+                var processId = args.processId;
+                var signalId = args.cmd.value;
+
+                if(signalId !== ((processId + 1) % 5)){
+                    return;
+                }
+                tableHoldList[processId] = false;
+            });
+            eventAggregator.on('execRun', function(args){
+                var processId = args.processId;
+
+                if(tableHoldList[processId]){
+                    table.startEatting(processId);
+                    table.getFork(processId);
+                }
+                for(var i = tableHoldList.length; i--;){
+                    if(!tableHoldList[i]){
+                        table.endEatting(i);
+                        table.putFork(i);
+                    }
+                }
+            });
+
             //注册进程管理事件
             eventAggregator.on('addProc', function(args){
                 processLineController.addProcessLine();
@@ -90,7 +127,7 @@ require(["./js/init", "table"], function() {
             //process init
             //创建进程管理
             processController = new ProcessController({
-                intervalTime: 5,
+                intervalTime: 50,
                 eventAggregator: eventAggregator
             });
             //创建时间片算法
@@ -191,26 +228,6 @@ require(["./js/init", "table"], function() {
                 thisPhil.thinking(eattingTimeB);
                 thisPhil.endEatting();
                 thisPhil.thinking(maxEattingTime - eattingTimeB);
-
-                //for(var j = 0; j < 5; ++j){
-                    //process.addCmd('execRun', 1);
-                //}
-                //process.addCmd('wait', 1);
-                //for(var j = 0; j < 15; ++j){
-                    //process.addCmd('execRun', 1);
-                //}
-                //process.addCmd('wait', 2);
-                //for(var j = 0; j < 15; ++j){
-                    //process.addCmd('execRun', 1);
-                //}
-                //process.addCmd('signal', 2);
-                //for(var j = 0; j < 5; ++j){
-                    //process.addCmd('execRun', 1);
-                //}
-                //process.addCmd('signal', 1);
-                //for(var j = 0; j < 15; ++j){
-                    //process.addCmd('execRun', 1);
-                //}
             }
 
             for(var i = 0; i < philosophers.length; i++){

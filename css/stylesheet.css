@@ -1,0 +1,116 @@
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed, 
+figure, figcaption, footer, header, hgroup, 
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video 
+{
+    margin: 0;
+    padding: 0;
+    border: 0;
+    font-family: 'Microsoft YaHei',Arial,Helvetica,sans-serif;
+    color: #888;
+    font-size: 100%;
+    font: inherit;
+    vertical-align: baseline;
+}
+
+.clear {
+    clear: both;
+}
+
+a {
+    text-decoration:none;
+}
+
+body {
+    background: white;
+}
+
+div#wrapper {
+    width: 1080px;
+    margin:0 auto;
+}
+
+div#container_main {
+    margin-top: 24px;
+}
+
+div#header h1 {
+    color: #f7f7f7;
+    text-shadow: 1px 1px black;
+    text-align: center;
+    padding: 10px;
+    font-size: 1em;
+    background-color: #5d5d5d;
+    box-shadow: 0 0 3px rgba(0,0,0,0.8);
+}
+
+div#projectList {
+    float: left;
+    width: 159px;
+    border-right: 1px solid rgb(217,220,216);
+}
+
+div#projectList #listTitle {
+    display: block;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    text-align: center;
+    font-weight: bold;
+    color: #005db6;
+}
+
+div#projectList ul {
+    margin-bottom: 10px;
+    text-align: center;
+    list-style: none;
+}
+
+div#projectList ul>li a {
+    padding-top: 5px;
+    padding-bottom: 5px;
+    display: block;
+    background: transparent;
+}
+
+div#projectList ul>li a:hover,
+div#projectList ul>li a.here {
+    background: rgba(217, 220, 216, 0.5);
+}
+
+
+div#container {
+    float: left;
+    width: 910px;
+    margin-left: 10px
+}
+
+div#container #photo{
+    border: 1px 1px black;
+    max-width: 910px;
+    box-shadow: 1px 1px 10px rgba(0,0,0,0.8);
+
+}
+
+footer {
+    overflow: hidden;
+    display: block;
+    border-top: 1px solid #888;
+    font-size: 0.8em;
+    clear:both;
+    margin: auto;
+    margin-top: 20px;
+    margin-bottom: 10px;
+    padding-top: 10px;
+    text-align: center;
+}
+
+

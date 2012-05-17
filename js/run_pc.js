@@ -1,6 +1,6 @@
 //run.js
 //draw init
-require(["./js/init"], function() {
+require(["./js/init", "./js/table", "./js/line"], function() {
     window.onload = function(){
         //创建时间线画布
         processLineStage = new ProcessLineStage("container");
@@ -8,6 +8,8 @@ require(["./js/init"], function() {
         processLineController = new ProcessLineController(processLineStage, 
             {step: 2});
         text = new DrawDom();
+        table = new Table();
+        line = new Line("line");
 
         (function(exports) {
             var runStyle = {
@@ -51,6 +53,7 @@ require(["./js/init"], function() {
             for(var i in runStyle){
                 if(runStyle.hasOwnProperty(i)){
                     eventAggregator.on(i, (function(i){
+                        //keep i
                         return function(args) {
                             if(args.cmd.value == -1){
                                 return;
@@ -89,7 +92,7 @@ require(["./js/init"], function() {
             //process init
             //创建进程管理
             processController = new ProcessController({
-                intervalTime: 5,
+                intervalTime: 50,
                 eventAggregator: eventAggregator
             });
             //创建时间片算法
@@ -108,29 +111,51 @@ require(["./js/init"], function() {
         }(window));
 
         (function(exports){
-            var process1 = new Process(0, 1);
+            eventAggregator.on('execRun', function(args){
+                switch(args.processId){
+                    case 0: 
+                        line.addX();
+                        break;
+                    case 1:
+                        line.addY();
+                        break;
+                    default: break;
+                }
+            });
+            line.init();
+            var forbidStart = {};
+            var forbidEnd = {};
 
-            process1.addCmd('execRun', 5);
-            process1.addCmd('wait', 0);
-            process1.addCmd('execRun', 5);
-            process1.addCmd('wait', 1);
-            process1.addCmd('signal', 0);
-            process1.addCmd('signal', 1);
-            process1.addCmd('execRun', 15);
-            processController.addProcess(process1);
+            var process = new Process(0, 0);
+            process.addCmd('execRun', 15);
+            forbidStart.x = process.getCmdLength();
+            process.addCmd('wait', 0);
+            process.addCmd('execRun', 10);
+            forbidEnd.x = process.getCmdLength();
+            process.addCmd('wait', 1);
+            process.addCmd('execRun', 15);
+            process.addCmd('signal', 0);
+            process.addCmd('signal', 1);
+            processController.addProcess(process);
+            process.getCmdLength();
 
 
-            var process2 = new Process(1, 1);
+            var process = new Process(1, 0);
+            process.addCmd('execRun', 15);
+            forbidStart.y = process.getCmdLength();
+            process.addCmd('wait', 1);
+            process.addCmd('execRun', 10);
+            forbidEnd.y = process.getCmdLength();
+            process.addCmd('wait', 0);
+            process.addCmd('execRun', 15);
+            process.addCmd('signal', 1);
+            process.addCmd('signal', 0);
+            processController.addProcess(process);
 
-            process2.addCmd('execRun', 5);
-            process2.addCmd('wait', 1);
-            process2.addCmd('execRun', 5);
-            process2.addCmd('wait', 0);
-            process2.addCmd('signal', 0);
-            process2.addCmd('signal', 1);
-            process2.addCmd('execRun', 15);
-            processController.addProcess(process2);
+            line.addForbidRect(forbidStart, forbidEnd);
+            
         }(window));
+
 
         (function(exports) {
             //启动进程

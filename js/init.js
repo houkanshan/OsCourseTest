@@ -22,6 +22,9 @@ require(["./js/event", "./js/draw", "./js/debug", "./js/config", "./js/text"], f
         this.getCmd = function(){
             return cmdQuene;
         }
+        this.getCmdLength = function(){
+            return cmdQuene.length;
+        }
 
         this.runCmd = function(uiEvent) {
             var cmd = cmdQuene.shift();
@@ -49,7 +52,7 @@ require(["./js/event", "./js/draw", "./js/debug", "./js/config", "./js/text"], f
                         break;
                     case 'wait':
                         holdCmd.push(cmd);
-                        break;
+                        break;processLineController
                     default:break;
                 }
 
@@ -68,8 +71,6 @@ require(["./js/event", "./js/draw", "./js/debug", "./js/config", "./js/text"], f
                 if(cmd.value != -1){
                     runTime ++;
                 }
-
-
                 return true;
             }
 
@@ -356,7 +357,6 @@ require(["./js/event", "./js/draw", "./js/debug", "./js/config", "./js/text"], f
 
             //signal[0]的判断是因为wait在signal后会重新申请一次，需要检查
             //这个进程是不是重新wait一次
-            debugger;
             if(signal[signalId][0] !== processId){
                 if(signal[signalId].length > 0){
                     //信号被占用, block

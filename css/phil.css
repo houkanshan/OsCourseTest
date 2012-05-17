@@ -1,7 +1,7 @@
 #table{
     position: absolute;
-    top: 400px;
-    left: 100px;
+    top: 100px;
+    left: 800px;
     /*z-index: 100;*/
 
     height: 160px;
@@ -82,32 +82,51 @@
     width:0px;
     
 }
-.phil li.l0 {
+.phil .l0 {
     -webkit-transform: rotate(72deg) translate(50%, 50%);
 
     background: #ff7070;
 }
 
-.phil li.l1 {
+.phil .l1 {
     -webkit-transform: rotate(144deg) translate(50%, 50%);
 
     background: #ffe270;
 }
 
-.phil li.l2 {
+.phil .l2 {
     -webkit-transform: rotate(216deg) translate(50%, 50%);
 
     background: #ffce75;
 }
 
-.phil li.l3 {
+.phil .l3 {
     -webkit-transform: rotate(288deg) translate(50%, 50%);
 
     background: #ffb275;
 }
 
-.phil li.l4 {
+.phil .l4 {
     -webkit-transform: rotate(360deg) translate(50%, 50%);
 
     background: #ff9375;
+}
+
+.phil .eatting{
+    background: #4286F4;
+}
+.phil .top-phil.eatting{
+    border-bottom-color: #4286F4;
+    background: transparent;
+}
+
+
+/*===== axis =====*/
+#line {
+    position: absolute;
+    top: 200px;
+    left: 10px;
+    border: 1px solid black;
+    height: 400px;
+    width: 400px;
 }

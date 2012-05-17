@@ -1,0 +1,93 @@
+<!DOCTYPE HTML>
+<html lang="en-US">
+<head>
+    <meta charset="UTF-8">
+    <title>OsCourseExperiment</title>
+    <script type="text/javascript">
+        DEBUG = true;
+    </script>
+    <script type="text/javascript" src="./js/loader.js"></script>
+    <script type="text/javascript" src="./js/init.js"></script>
+    <script type="text/javascript" src="./js/run_process_timeframe.js"></script>
+    <style type="text/css">
+        ul, li{
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+        ul{
+            padding: 0 4px;
+            font: #303032;
+        }
+        .hide{
+            display: none;
+        }
+        .run{
+            background: #9cd5c5;
+        }
+        .clearfix{
+            clear: both;
+        }
+        #container{
+            width: 1000px;
+            height: 400px;
+        }
+        #time{
+            text-align: center;
+        }
+        #time dl{
+            margin: 0 3px;
+        }
+        .label{
+            list-style: none;
+            font-size: 12px;
+            float: left;
+            margin-right: 2px;
+        }
+        #container{
+            float: left;
+        }
+    </style>
+    <link rel="stylesheet" href="./css/phil.css" />
+</head>
+<body>
+    <header>
+        <h1>Houkanshan's Operating System course experiment</h1>
+        <a href="./jasmine/SpecRunner.html" target="_blank">run TDD</a>
+    </header>
+    <ul id="processlist" class="label">
+    </ul>
+    <div id="container">
+    </div>
+    <div id="time" class="clearfix">
+        <dl class="t">
+        	<dt>Average turnaround time:</dt>
+        	<dd></dd>
+        </dl>
+        <dl class="dt">
+        	<dt>Average weighted turnaround time:</dt>
+        	<dd></dd>
+        </dl>
+    </div>
+    <div id="table" class="hide">
+        <ul class="fork">
+        	<li class="f0"></li>
+        	<li class="f1"></li>
+        	<li class="f2"></li>
+        	<li class="f3"></li>
+        	<li class="f4"></li>
+        </ul>
+        <ul class="phil">
+            <li class="l0"></li>
+        	<li class="l1"></li>
+        	<li class="l2"></li>
+        	<li class="l3"></li>
+        	<li class="l4"></li>
+            <li class="top-phil"></li>
+        </ul>
+    </div>
+    <div id="line" class="hide">
+    </div>
+
+</body>
+</html>

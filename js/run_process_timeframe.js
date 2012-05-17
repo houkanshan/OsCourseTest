@@ -57,6 +57,7 @@ require(["./js/init"], function() {
                             }
                             processLineController.timeRun(args.processId,
                                 runStyle[i]);
+                            text.highLight(args.processId);
                             if(typeof args.holdCmd == "object" && 
                                 args.holdCmd.length !== 0){
                                 for(var j = 0; j < args.holdCmd.length; ++j){
@@ -110,9 +111,7 @@ require(["./js/init"], function() {
             //base signal
             for(var i = 0; i < 10; ++i){
                 var process = new Process(i, i%config.MAX_PRIORITY);
-                for(var j = 0; j < 25; ++j){
-                    process.addCmd('execRun', 1);
-                }
+                process.addCmd('execRun', 25);
                 processController.addProcess(process);
             }
         }(window));
